@@ -1,67 +1,107 @@
 /**
- * Tipagens que espelham o schema do Supabase (PostgreSQL).
- * Mantidas em sincronia manual com as migrations do banco.
+ * Mapeamento do schema PostgreSQL para tipagem do cliente Supabase.
+ * Usado em: createClient<Database>(url, key)
+ *
+ * As colunas WhatsApp são separadas no banco (whatsapp_phone, whatsapp_uid)
+ * e agrupadas no front como WhatsAppContact via camada /services.
  */
-
-// ─── Identidade WhatsApp (Híbrida) ────────────────────────────
-export interface WhatsAppContact {
-  /** Número formatado com DDI, ex: "5511999999999" */
-  phone: string;
-  /** UID do WhatsApp Business API (uso futuro) */
-  uid?: string;
+export interface Database {
+  public: {
+    Tables: {
+      barbershops: {
+        Row: {
+          id: string;
+          owner_id: string;
+          name: string;
+          is_open: boolean;
+          avg_time_minutes: number;
+          created_at: string;
+          updated_at: string;
+        };
+        Insert: {
+          id?: string;
+          owner_id: string;
+          name: string;
+          is_open?: boolean;
+          avg_time_minutes?: number;
+        };
+        Update: {
+          name?: string;
+          is_open?: boolean;
+          avg_time_minutes?: number;
+          updated_at?: string;
+        };
+        Relationships: [];
+      };
+      services: {
+        Row: {
+          id: string;
+          barbershop_id: string;
+          name: string;
+          price: number;
+          image_url: string | null;
+          created_at: string;
+        };
+        Insert: {
+          id?: string;
+          barbershop_id: string;
+          name: string;
+          price: number;
+          image_url?: string | null;
+        };
+        Update: {
+          name?: string;
+          price?: number;
+          image_url?: string | null;
+        };
+        Relationships: [];
+      };
+      queue: {
+        Row: {
+          id: string;
+          barbershop_id: string;
+          customer_name: string;
+          whatsapp_phone: string;
+          whatsapp_uid: string | null;
+          status: string;
+          joined_at: string;
+        };
+        Insert: {
+          id?: string;
+          barbershop_id: string;
+          customer_name: string;
+          whatsapp_phone: string;
+          whatsapp_uid?: string | null;
+          status?: string;
+        };
+        Update: {
+          customer_name?: string;
+          whatsapp_phone?: string;
+          whatsapp_uid?: string | null;
+          status?: string;
+        };
+        Relationships: [];
+      };
+      user_chapters: {
+        Row: {
+          user_id: string;
+          chapter_id: string;
+          is_active: boolean;
+        };
+        Insert: {
+          user_id: string;
+          chapter_id: string;
+          is_active?: boolean;
+        };
+        Update: {
+          is_active?: boolean;
+        };
+        Relationships: [];
+      };
+    };
+    Views: Record<string, never>;
+    Functions: Record<string, never>;
+    Enums: Record<string, never>;
+    CompositeTypes: Record<string, never>;
+  };
 }
-
-// ─── Tabela: barbershops ──────────────────────────────────────
-export interface Barbershop {
-  id: string;
-  owner_id: string;
-  name: string;
-  is_open: boolean;
-  /** Tempo médio de atendimento em minutos */
-  avg_time_minutes: number;
-  created_at?: string;
-  updated_at?: string;
-}
-
-// ─── Tabela: services ─────────────────────────────────────────
-export interface Service {
-  id: string;
-  barbershop_id: string;
-  name: string;
-  /** Preço em centavos (evita floating point) */
-  price: number;
-  /** URL da imagem comprimida (< 200KB) */
-  image_url: string | null;
-  created_at?: string;
-}
-
-// ─── Tabela: queue ────────────────────────────────────────────
-export type QueueStatus = 'waiting' | 'in_progress' | 'finished';
-
-export interface QueueEntry {
-  id: string;
-  barbershop_id: string;
-  customer_name: string;
-  /** Contato WhatsApp do cliente */
-  whatsapp: WhatsAppContact;
-  status: QueueStatus;
-  joined_at: string;
-}
-
-// ─── Tabela: user_chapters ────────────────────────────────────
-export interface UserChapter {
-  user_id: string;
-  /** Identificador do módulo (ex: "vitrine", "retention") */
-  chapter_id: string;
-  is_active: boolean;
-}
-
-// ─── Helpers para INSERT / UPDATE (sem campos auto-gerados) ──
-export type BarbershopInsert = Omit<Barbershop, 'id' | 'created_at' | 'updated_at'>;
-export type BarbershopUpdate = Partial<Omit<Barbershop, 'id' | 'owner_id'>>;
-
-export type ServiceInsert = Omit<Service, 'id' | 'created_at'>;
-export type ServiceUpdate = Partial<Omit<Service, 'id' | 'barbershop_id'>>;
-
-export type QueueEntryInsert = Omit<QueueEntry, 'id' | 'joined_at'>;
-export type QueueEntryUpdate = Partial<Pick<QueueEntry, 'status'>>;
