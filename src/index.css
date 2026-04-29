@@ -1,0 +1,83 @@
+@import "tailwindcss";
+
+/* ============================================
+   Gerente da Cadeira — Design System Tokens
+   Mobile-First | Dark Theme | Premium Feel
+   ============================================ */
+
+@theme {
+  /* — Brand Palette — */
+  --color-brand-gold: #D4A853;
+  --color-brand-gold-light: #E8C97A;
+  --color-brand-gold-dark: #B08A3A;
+
+  /* — Neutral (Dark Theme Base) — */
+  --color-surface-900: #0F0F0F;
+  --color-surface-800: #1A1A1A;
+  --color-surface-700: #2A2A2A;
+  --color-surface-600: #3A3A3A;
+  --color-surface-500: #555555;
+  --color-surface-400: #888888;
+  --color-surface-300: #AAAAAA;
+  --color-surface-200: #D0D0D0;
+  --color-surface-100: #F0F0F0;
+
+  /* — Semantic Colors — */
+  --color-status-open: #22C55E;
+  --color-status-closed: #EF4444;
+  --color-status-waiting: #F59E0B;
+  --color-status-in-progress: #3B82F6;
+
+  /* — Typography — */
+  --font-sans: 'Inter', ui-sans-serif, system-ui, sans-serif;
+
+  /* — Spacing (touch-friendly) — */
+  --spacing-touch: 48px;
+}
+
+/* ============================================
+   Base Styles
+   ============================================ */
+
+html {
+  -webkit-tap-highlight-color: transparent;
+}
+
+body {
+  @apply bg-surface-900 text-surface-100 font-sans antialiased;
+  min-height: 100dvh;
+  overscroll-behavior: none;
+}
+
+/* — Scrollbar Styling — */
+::-webkit-scrollbar {
+  width: 4px;
+}
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+::-webkit-scrollbar-thumb {
+  @apply bg-surface-600 rounded-full;
+}
+
+/* ============================================
+   Utility Animations
+   ============================================ */
+
+@keyframes fade-in {
+  from { opacity: 0; transform: translateY(8px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes pulse-glow {
+  0%, 100% { box-shadow: 0 0 8px 2px var(--color-status-open); }
+  50%      { box-shadow: 0 0 16px 6px var(--color-status-open); }
+}
+
+.animate-fade-in {
+  animation: fade-in 0.3s ease-out both;
+}
+
+.animate-pulse-glow {
+  animation: pulse-glow 2s ease-in-out infinite;
+}
