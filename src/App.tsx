@@ -1,7 +1,8 @@
 import { Suspense } from 'react';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { ModuleRegistryProvider } from './core/ModuleRegistry';
-import { Scissors } from 'lucide-react';
+import { Scissors, Users } from 'lucide-react';
+import QueueModule from './modules/queue/QueueModule';
 
 // ─── React Query — Config otimizada para mobile ──────────────
 const queryClient = new QueryClient({
@@ -51,30 +52,27 @@ function AppShell() {
         </div>
       </header>
 
-      {/* Área de conteúdo principal */}
-      <main className="flex-1 px-4 py-6">
-        <div className="animate-fade-in">
-          <div className="rounded-2xl bg-surface-800 border border-surface-700/50 p-6">
-            <h2 className="text-lg font-semibold text-surface-100 mb-2">
-              Bem-vindo 👋
-            </h2>
-            <p className="text-sm text-surface-400 leading-relaxed">
-              Seu sistema de gestão está pronto. Os módulos serão
-              carregados conforme ativados no seu plano.
-            </p>
-          </div>
-        </div>
+      {/* Área de conteúdo principal — Módulo da Fila */}
+      <main className="flex-1 px-4 py-4 pb-20">
+        <QueueModule />
       </main>
 
-      {/* Bottom nav placeholder — será expandido com módulos */}
-      <nav className="sticky bottom-0 z-50 bg-surface-900/90 backdrop-blur-md border-t border-surface-700/50">
+      {/* Bottom nav */}
+      <nav className="fixed bottom-0 left-0 right-0 z-50 bg-surface-900/90 backdrop-blur-md border-t border-surface-700/50">
         <div className="flex items-center justify-around h-16">
+          <button
+            type="button"
+            className="flex flex-col items-center gap-1 text-surface-400 min-w-[64px] min-h-[48px] justify-center"
+          >
+            <Scissors className="w-5 h-5" />
+            <span className="text-[10px] font-medium">Início</span>
+          </button>
           <button
             type="button"
             className="flex flex-col items-center gap-1 text-brand-gold min-w-[64px] min-h-[48px] justify-center"
           >
-            <Scissors className="w-5 h-5" />
-            <span className="text-[10px] font-medium">Início</span>
+            <Users className="w-5 h-5" />
+            <span className="text-[10px] font-medium">Fila</span>
           </button>
         </div>
       </nav>
@@ -94,3 +92,4 @@ export default function App() {
     </QueryClientProvider>
   );
 }
+
