@@ -6,6 +6,8 @@ export interface Barbershop {
   is_open: boolean;
   /** Tempo médio de atendimento em minutos */
   avg_time_minutes: number;
+  /** PIN de acesso ao modo barbeiro (não retornado pelo getShop) */
+  pin?: string;
   created_at?: string;
   updated_at?: string;
 }

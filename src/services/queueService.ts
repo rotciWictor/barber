@@ -91,4 +91,72 @@ export const QueueService = {
     if (error) throw new Error(`Erro ao atualizar status: ${error.message}`);
     return mapRowToQueueEntry(data);
   },
+
+  /**
+   * Chama o próximo da fila.
+   * Finaliza quem está em atendimento (se houver) e promove o próximo waiting.
+   */
+  async callNext(barbershopId: string): Promise<QueueEntry | null> {
+    // 1. Finaliza quem está in_progress
+    const { data: current } = await supabase
+      .from('queue')
+      .select('id')
+      .eq('barbershop_id', barbershopId)
+      .eq('status', 'in_progress')
+      .maybeSingle();
+
+    if (current) {
+      await supabase
+        .from('queue')
+        .update({ status: 'finished' })
+        .eq('id', current.id);
+    }
+
+    // 2. Busca o próximo waiting (mais antigo)
+    const { data: next, error } = await supabase
+      .from('queue')
+      .select('*')
+      .eq('barbershop_id', barbershopId)
+      .eq('status', 'waiting')
+      .order('joined_at', { ascending: true })
+      .limit(1)
+      .maybeSingle();
+
+    if (error) throw new Error(`Erro ao chamar próximo: ${error.message}`);
+    if (!next) return null;
+
+    // 3. Promove para in_progress
+    const { error: promoteErr } = await supabase
+      .from('queue')
+      .update({ status: 'in_progress' })
+      .eq('id', next.id);
+
+    if (promoteErr) throw new Error(`Erro ao promover: ${promoteErr.message}`);
+    return mapRowToQueueEntry({ ...next, status: 'in_progress' });
+  },
+
+  /**
+   * Finaliza o atendimento atual (muda para finished).
+   */
+  async finishCurrent(entryId: string): Promise<void> {
+    const { error } = await supabase
+      .from('queue')
+      .update({ status: 'finished' })
+      .eq('id', entryId);
+
+    if (error) throw new Error(`Erro ao finalizar: ${error.message}`);
+  },
+
+  /**
+   * Remove um cliente da fila (muda status para cancelled).
+   * Os dados são preservados para analytics e histórico.
+   */
+  async removeFromQueue(entryId: string): Promise<void> {
+    const { error } = await supabase
+      .from('queue')
+      .update({ status: 'cancelled' })
+      .eq('id', entryId);
+
+    if (error) throw new Error(`Erro ao remover: ${error.message}`);
+  },
 } as const;

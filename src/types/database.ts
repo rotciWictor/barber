@@ -17,6 +17,7 @@ export interface Database {
           avg_time_minutes: number;
           created_at: string;
           updated_at: string;
+          pin: string;
         };
         Insert: {
           id?: string;
@@ -24,12 +25,14 @@ export interface Database {
           name: string;
           is_open?: boolean;
           avg_time_minutes?: number;
+          pin?: string;
         };
         Update: {
           name?: string;
           is_open?: boolean;
           avg_time_minutes?: number;
           updated_at?: string;
+          pin?: string;
         };
         Relationships: [];
       };
