@@ -119,25 +119,32 @@ npm run dev
 4. **[x] Visão dupla** — Cliente (posições anônimas) vs Barbeiro (nomes, ações, WhatsApp)
 5. **[x] PIN de acesso** — 4 dígitos OTP, verificado no Supabase, persistido local
 
-### Fase 2 — Autenticação e Proteção
+### Fase 2 — Pronto pra Teste Real 🎯
 
-1. **[ ] Supabase Auth**
-   - Login simples (email/magic link ou Google)
-   - Proteção das rotas do barbeiro
-   - Associar `barbershop_id` ao usuário autenticado
-   - Remover ID hardcoded `00000000-0000-0000-0000-000000000001`
+> Objetivo: colocar na mão de um barbeiro real com segurança mínima.
 
-### Fase 3 — PWA e Deploy
+1. **[ ] Autenticação do cliente**
+   - Login via WhatsApp (OTP) ou Supabase Auth (magic link)
+   - Impede entrada duplicada na fila (1 pessoa = 1 entrada)
+   - Barbeiro continua com PIN (sem mudança)
+
+2. **[ ] WhatsApp "Você é o próximo"**
+   - Ao clicar "Chamar Próximo", abre deep link do WhatsApp com mensagem pronta
+   - Mensagem: "Olá {nome}! Você é o próximo na fila da {barbearia}. Dirija-se à cadeira!"
+   - Custo: $0 (deep link, não API)
+
+3. **[ ] Deploy Vercel**
+   - Commitar `vercel.json`
+   - Linkar repositório ao Vercel
+   - Configurar env vars no painel
+   - Testar em celular real
+
+### Fase 3 — PWA e Polish
 
 1. **[ ] PWA Setup**
    - `manifest.json` com ícones e cores
    - Service Worker para cache offline
    - Splash screen e instalação no celular
-
-2. **[ ] Deploy Vercel**
-   - Commitar `vercel.json`
-   - Linkar repositório ao Vercel
-   - Configurar env vars no painel
 
 ### Fase 4 — Capítulos DLC
 
