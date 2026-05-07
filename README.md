@@ -158,12 +158,15 @@ npm run dev
 ## 🔀 Git Flow
 
 ``` markdown
-main ← develop ← feat/nome-da-feature
+main ← develop (trabalho diário)
+         ↑
+       feat/* (só quando precisar isolar algo em paralelo)
 ```
 
+- **`develop`**: branch de trabalho — commits diretos aqui
+- **`feat/*`**: só quando fizer sentido trabalhar em paralelo
+- **`main`**: versão estável — merge via PR quando pronto
 - **Commits**: Conventional Commits em inglês (`feat:`, `fix:`, `refactor:`, `chore:`)
-- **Feature branches**: `feat/queue-realtime`, `feat/auth`, etc.
-- **PRs**: feature → develop → main
 
 ---
 
