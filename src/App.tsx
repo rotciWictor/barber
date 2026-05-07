@@ -1,8 +1,13 @@
 import { Suspense } from 'react';
-import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+import { QueryClient, QueryClientProvider, useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { ModuleRegistryProvider } from './core/ModuleRegistry';
 import { Scissors, Users } from 'lucide-react';
+import { BarbershopService } from './services/barbershopService';
+import { useAppStore } from './store/useAppStore';
 import QueueModule from './modules/queue/QueueModule';
+
+// ─── Constants ────────────────────────────────────────────────
+const SHOP_ID = '00000000-0000-0000-0000-000000000001';
 
 // ─── React Query — Config otimizada para mobile ──────────────
 const queryClient = new QueryClient({
@@ -30,27 +35,69 @@ function LoadingFallback() {
   );
 }
 
+// ─── Header com semáforo funcional ────────────────────────────
+function AppHeader() {
+  const viewMode = useAppStore((s) => s.viewMode);
+  const qc = useQueryClient();
+
+  const { data: shop } = useQuery({
+    queryKey: ['shop', SHOP_ID],
+    queryFn: () => BarbershopService.getShop(SHOP_ID),
+  });
+
+  const toggleMutation = useMutation({
+    mutationFn: (newState: boolean) => BarbershopService.toggleOpen(SHOP_ID, newState),
+    onSuccess: () => qc.invalidateQueries({ queryKey: ['shop', SHOP_ID] }),
+  });
+
+  const isOpen = shop?.is_open ?? false;
+  const isBarber = viewMode === 'barber';
+
+  const handleToggle = () => {
+    if (!isBarber) return;
+    toggleMutation.mutate(!isOpen);
+  };
+
+  return (
+    <header className="sticky top-0 z-50 bg-surface-900/80 backdrop-blur-md border-b border-surface-700/50">
+      <div className="flex items-center justify-between px-4 h-14">
+        <div className="flex items-center gap-2">
+          <Scissors className="w-5 h-5 text-brand-gold" />
+          <h1 className="text-base font-semibold text-surface-100 tracking-tight">
+            {shop?.name ?? 'Gerente da Cadeira'}
+          </h1>
+        </div>
+
+        <button
+          type="button"
+          onClick={handleToggle}
+          disabled={!isBarber || toggleMutation.isPending}
+          className={`
+            flex items-center gap-2 px-2.5 py-1.5 rounded-full transition-all
+            ${isBarber ? 'cursor-pointer active:scale-95' : 'cursor-default'}
+          `}
+          aria-label={isOpen ? 'Fechar fila' : 'Abrir fila'}
+        >
+          <div
+            className={`
+              w-2.5 h-2.5 rounded-full transition-colors
+              ${isOpen ? 'bg-status-open animate-pulse-glow' : 'bg-status-closed'}
+            `}
+          />
+          <span className={`text-xs ${isOpen ? 'text-status-open' : 'text-surface-400'}`}>
+            {isOpen ? 'Aberto' : 'Fechado'}
+          </span>
+        </button>
+      </div>
+    </header>
+  );
+}
+
 // ─── Shell Principal da Aplicação ─────────────────────────────
 function AppShell() {
   return (
     <div className="min-h-dvh flex flex-col">
-      {/* Header minimalista */}
-      <header className="sticky top-0 z-50 bg-surface-900/80 backdrop-blur-md border-b border-surface-700/50">
-        <div className="flex items-center justify-between px-4 h-14">
-          <div className="flex items-center gap-2">
-            <Scissors className="w-5 h-5 text-brand-gold" />
-            <h1 className="text-base font-semibold text-surface-100 tracking-tight">
-              Gerente da Cadeira
-            </h1>
-          </div>
-
-          {/* Semáforo de status — será conectado ao estado real */}
-          <div className="flex items-center gap-2">
-            <div className="w-2.5 h-2.5 rounded-full bg-status-closed" />
-            <span className="text-xs text-surface-400">Fechado</span>
-          </div>
-        </div>
-      </header>
+      <AppHeader />
 
       {/* Área de conteúdo principal — Módulo da Fila */}
       <main className="flex-1 px-4 py-4 pb-20">
@@ -92,4 +139,3 @@ export default function App() {
     </QueryClientProvider>
   );
 }
-
