@@ -128,11 +128,11 @@ npm run dev
    - Impede entrada duplicada na fila (1 pessoa = 1 entrada)
    - Barbeiro continua com PIN (sem mudança)
 
-2. **[ ] WhatsApp "Você é o próximo" + Timer de chegada**
-   - Ao clicar "Chamar Próximo", abre deep link do WhatsApp com mensagem pronta
-   - Mensagem: "Olá {nome}! Você é o próximo. Tem 5 minutos pra chegar!"
+2. **[ ] Notificações de fila**
+   - Quando chega ao 1º da fila: alerta no app + WhatsApp "Você é o próximo! Fique por perto"
+   - Quando barbeiro clica "Chamar": WhatsApp "Sua vez! Tem 5 minutos pra chegar"
    - Timer de 5 min visível no app (contagem regressiva no card do cliente)
-   - Se não chegou: botão "Pular" → manda pro final da fila, chama o próximo
+   - Se não chegou: botão "Pular" → próximo da fila passa na frente
    - Custo: $0 (deep link, não API)
 
 3. **[ ] Deploy Vercel**
