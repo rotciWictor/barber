@@ -1,7 +1,7 @@
 import type { WhatsAppContact } from './whatsapp';
 
 /** Status possíveis de um cliente na fila */
-export type QueueStatus = 'waiting' | 'in_progress' | 'finished';
+export type QueueStatus = 'waiting' | 'in_progress' | 'finished' | 'cancelled';
 
 /** Tabela: queue */
 export interface QueueEntry {

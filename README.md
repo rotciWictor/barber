@@ -15,13 +15,16 @@
 | Design System (Tailwind v4) | ✅ Concluído | Dark theme, tokens de marca, animações |
 | Tipagem modular | ✅ Concluído | Arquivos pequenos em `src/types/` |
 | Cliente Supabase | ✅ Concluído | Tipado com `Database` genérico |
-| Camada de Serviço (SOLID) | ✅ Concluído | `QueueService` com mapeamento DB↔Frontend |
-| QueueModule (UI) | ✅ Concluído | StatusCard, QueueItem, JoinQueueSheet |
+| Camada de Serviço (SOLID) | ✅ Concluído | `QueueService` + `BarbershopService` |
+| QueueModule (UI) | ✅ Concluído | Visão dupla: cliente (anônima) + barbeiro (completa) |
 | React Query (leitura + escrita) | ✅ Concluído | `useQuery` + `useMutation` + invalidação |
-| Supabase RLS | ✅ Concluído | Políticas de leitura/escrita configuradas |
-| Realtime (Supabase Channels) | ❌ Pendente | Fila não atualiza em tempo real entre dispositivos |
+| Supabase RLS | ✅ Concluído | Políticas de leitura/escrita/update configuradas |
+| Realtime (Supabase Channels) | ✅ Concluído | `useQueueRealtime` com invalidação automática |
+| Ações do barbeiro na fila | ✅ Concluído | Chamar próximo, finalizar, remover (com confirmação) |
+| Zustand (estado global) | ✅ Concluído | viewMode (cliente/barbeiro) persistido via localStorage |
+| PIN de acesso (modo gerente) | ✅ Concluído | 4 dígitos, verificado no Supabase, persiste local |
+| Semáforo Aberto/Fechado | ✅ Concluído | Toggle funcional no header (só modo barbeiro) |
 | Autenticação (Supabase Auth) | ❌ Pendente | Login do barbeiro, proteção de rotas |
-| Ações do barbeiro na fila | ❌ Pendente | Chamar próximo, finalizar, remover |
 | PWA (manifest, SW, offline) | ❌ Pendente | Service Worker, ícones, splash screen |
 | Vitrine de Serviços (Capítulo 2) | ❌ Pendente | CRUD de serviços com upload de imagem |
 | Deploy (Vercel) | 🟡 Parcial | `vercel.json` criado mas não commitado |
@@ -35,6 +38,8 @@ src/
 ├── core/                    # Infraestrutura central
 │   ├── supabase.ts          # Cliente Supabase tipado (singleton)
 │   └── ModuleRegistry.tsx   # Context API — padrão "DLC" de módulos
+├── store/                   # Estado global (Zustand)
+│   └── useAppStore.ts       # viewMode (customer/barber) + persist
 ├── types/                   # Tipagem modular (arquivos pequenos)
 │   ├── barbershop.ts
 │   ├── queue.ts
@@ -45,19 +50,25 @@ src/
 │   ├── database.ts          # Schema Supabase (só pro client genérico)
 │   └── index.ts             # Barrel re-export
 ├── services/                # Camada SOLID sobre o Supabase
-│   └── queueService.ts      # joinQueue, getActiveQueue, updateStatus
+│   ├── queueService.ts      # joinQueue, getActiveQueue, callNext, finish, cancel
+│   └── barbershopService.ts # getShop, verifyPin, toggleOpen
+├── hooks/                   # Custom hooks
+│   ├── useQueueRealtime.ts  # Supabase Channels → invalidação React Query
+│   └── useQueueMutations.ts # Mutations da fila extraídas do QueueModule
 ├── modules/                 # "Capítulos DLC" — features independentes
 │   └── queue/
-│       ├── QueueModule.tsx   # Orquestrador (~125 linhas)
+│       ├── QueueModule.tsx   # Orquestrador dual-view (~210 linhas)
 │       ├── components/
 │       │   ├── StatusCard.tsx
-│       │   ├── QueueItem.tsx
-│       │   └── JoinQueueSheet.tsx
+│       │   ├── QueueItem.tsx       # Ações: chamar, finalizar, remover
+│       │   ├── JoinQueueSheet.tsx
+│       │   ├── CustomerQueueView.tsx # Visão anônima (sem nomes)
+│       │   ├── PinSheet.tsx         # Input OTP para PIN do barbeiro
+│       │   └── ConfirmDialog.tsx    # Modal de confirmação
 │       └── utils/
 │           └── queueUtils.ts
-├── hooks/                   # Custom hooks (vazio — aguardando Realtime)
 ├── components/              # UI reutilizável (vazio — aguardando growth)
-├── App.tsx                  # Provider tree + App Shell
+├── App.tsx                  # Provider tree + App Shell + Header funcional
 ├── main.tsx                 # Entry point
 └── index.css                # Design system Tailwind v4
 ```
@@ -75,7 +86,7 @@ Cada feature é um **módulo independente** (capítulo) que pode ser ativado/des
 | Frontend | React 19, TypeScript, Vite 8 |
 | Estilização | Tailwind CSS v4 |
 | Estado (servidor) | TanStack React Query v5 |
-| Estado (cliente) | Zustand (instalado, ainda não utilizado) |
+| Estado (cliente) | Zustand (viewMode, persistência via localStorage) |
 | Backend/DB | Supabase (PostgreSQL, Auth, Realtime, Storage) |
 | Ícones | Lucide React |
 | Hospedagem | Vercel (planejado) |
@@ -100,24 +111,13 @@ npm run dev
 
 ## 🗺️ Próximos Passos (por prioridade)
 
-### Fase 1 — Fila Virtual Completa
+### ~~Fase 1 — Fila Virtual Completa~~ ✅
 
-1. **[ ] Ações do barbeiro na fila**
-   - Botão "Chamar próximo" → muda status para `in_progress`
-   - Botão "Finalizar" → muda status para `finished`
-   - Swipe ou botão para remover da fila
-   - Confirmação antes de ações destrutivas
-
-2. **[ ] Realtime (Supabase Channels)**
-   - Hook `useQueueRealtime` em `src/hooks/`
-   - Subscrição em `INSERT`, `UPDATE`, `DELETE` na tabela `queue`
-   - Invalidação automática do cache do React Query
-   - Atualização da fila em tempo real entre dispositivos
-
-3. **[ ] Semáforo "Aberto/Fechado" funcional**
-   - Conectar o indicador do header ao campo `is_open` da barbearia
-   - Toggle para o barbeiro abrir/fechar a fila
-   - Bloquear entrada quando fechado
+1. **[x] Ações do barbeiro na fila** — Chamar próximo, finalizar (`finished`), remover (`cancelled`)
+2. **[x] Realtime (Supabase Channels)** — `useQueueRealtime` com invalidação automática
+3. **[x] Semáforo Aberto/Fechado** — Toggle funcional no header, bloqueia entrada quando fechado
+4. **[x] Visão dupla** — Cliente (posições anônimas) vs Barbeiro (nomes, ações, WhatsApp)
+5. **[x] PIN de acesso** — 4 dígitos OTP, verificado no Supabase, persistido local
 
 ### Fase 2 — Autenticação e Proteção
 
@@ -171,9 +171,9 @@ main ← develop ← feat/nome-da-feature
 
 | Tabela | Propósito |
 | -------- | ----------- |
-| `barbershops` | Dados da barbearia (nome, status, tempo médio) |
+| `barbershops` | Dados da barbearia (nome, status, tempo médio, PIN) |
 | `services` | Serviços oferecidos (nome, preço, foto) |
-| `queue` | Fila virtual (cliente, WhatsApp, status, horário) |
+| `queue` | Fila virtual (cliente, WhatsApp, status: waiting/in_progress/finished/cancelled) |
 | `user_chapters` | Módulos ativos por usuário (padrão DLC) |
 
 > **Nota**: A barbearia de teste usa o ID `00000000-0000-0000-0000-000000000001`.
