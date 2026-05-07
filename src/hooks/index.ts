@@ -1,3 +1,3 @@
 // Barrel file — custom hooks
-// Hooks como useQueueRealtime serão adicionados aqui.
-export {};
+export { useQueueRealtime } from './useQueueRealtime';
+export { useQueueMutations } from './useQueueMutations';

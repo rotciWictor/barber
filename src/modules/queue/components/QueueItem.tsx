@@ -1,14 +1,22 @@
-import { Scissors, ArrowRight, MessageCircle } from 'lucide-react';
+import { Scissors, ArrowRight, MessageCircle, PhoneForwarded, CheckCircle, X } from 'lucide-react';
 import type { QueueEntry } from '../../../types/queue';
 import { getWhatsAppLink, formatJoinedAt } from '../utils/queueUtils';
 
-export function QueueItem({
-  entry,
-  position,
-}: {
+type QueueAction = 'call' | 'finish' | 'remove';
+
+interface QueueItemProps {
   entry: QueueEntry;
   position: number;
-}) {
+  /** Quando presente, exibe botões de ação (modo barbeiro) */
+  onAction?: (action: QueueAction, entryId: string) => void;
+}
+
+/**
+ * Card individual de um cliente na fila.
+ * No modo barbeiro: exibe nome, WhatsApp, horário e botões de ação.
+ * No modo cliente: não é renderizado (CustomerQueueView cuida da visão anônima).
+ */
+export function QueueItem({ entry, position, onAction }: QueueItemProps) {
   const isInProgress = entry.status === 'in_progress';
 
   return (
@@ -54,16 +62,60 @@ export function QueueItem({
         </div>
       </div>
 
-      {/* Ação WhatsApp */}
-      <a
-        href={getWhatsAppLink(entry.whatsapp.phone)}
-        target="_blank"
-        rel="noopener noreferrer"
-        className="w-10 h-10 rounded-xl bg-green-500/10 border border-green-500/20 flex items-center justify-center shrink-0 active:scale-90 transition-transform"
-        aria-label={`Enviar mensagem para ${entry.customer_name}`}
-      >
-        <MessageCircle className="w-4.5 h-4.5 text-green-400" />
-      </a>
+      {/* Ações (modo barbeiro) */}
+      {onAction && (
+        <div className="flex items-center gap-1.5 shrink-0">
+          {/* Chamar próximo (só para waiting) */}
+          {!isInProgress && (
+            <button
+              type="button"
+              onClick={() => onAction('call', entry.id)}
+              className="w-9 h-9 rounded-lg bg-brand-gold/10 border border-brand-gold/20 flex items-center justify-center active:scale-90 transition-transform"
+              aria-label={`Chamar ${entry.customer_name}`}
+              title="Chamar"
+            >
+              <PhoneForwarded className="w-4 h-4 text-brand-gold" />
+            </button>
+          )}
+
+          {/* Finalizar (só para in_progress) */}
+          {isInProgress && (
+            <button
+              type="button"
+              onClick={() => onAction('finish', entry.id)}
+              className="w-9 h-9 rounded-lg bg-status-open/10 border border-status-open/20 flex items-center justify-center active:scale-90 transition-transform"
+              aria-label={`Finalizar ${entry.customer_name}`}
+              title="Finalizar"
+            >
+              <CheckCircle className="w-4 h-4 text-status-open" />
+            </button>
+          )}
+
+          {/* Remover */}
+          <button
+            type="button"
+            onClick={() => onAction('remove', entry.id)}
+            className="w-9 h-9 rounded-lg bg-status-closed/10 border border-status-closed/20 flex items-center justify-center active:scale-90 transition-transform"
+            aria-label={`Remover ${entry.customer_name}`}
+            title="Remover"
+          >
+            <X className="w-4 h-4 text-status-closed" />
+          </button>
+        </div>
+      )}
+
+      {/* WhatsApp (modo barbeiro — aparece quando tem onAction) */}
+      {onAction && (
+        <a
+          href={getWhatsAppLink(entry.whatsapp.phone)}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="w-9 h-9 rounded-lg bg-green-500/10 border border-green-500/20 flex items-center justify-center shrink-0 active:scale-90 transition-transform"
+          aria-label={`Mensagem para ${entry.customer_name}`}
+        >
+          <MessageCircle className="w-4 h-4 text-green-400" />
+        </a>
+      )}
     </div>
   );
 }
