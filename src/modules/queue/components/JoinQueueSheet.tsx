@@ -21,18 +21,25 @@ export function JoinQueueSheet({
   const [phone, setPhone] = useState('');
   const nameRef = useRef<HTMLInputElement>(null);
 
-  // Pré-preenche nome do Clerk quando abre o sheet
+  // Pré-preenche nome do Clerk e celular salvo quando abre o sheet
   useEffect(() => {
     if (isOpen) {
       if (user?.firstName) {
         setName(user.fullName ?? user.firstName);
       }
+
+      const savedPhone = localStorage.getItem('@barber:saved_phone');
+      if (savedPhone) {
+        setPhone(savedPhone);
+      }
+
       // Auto-focus no campo certo
       setTimeout(() => {
-        if (user?.firstName) {
-          // Nome já preenchido → foca no telefone
+        if (user?.firstName && !savedPhone) {
+          // Nome preenchido mas telefone não → foca no telefone
           document.getElementById('queue-phone')?.focus();
-        } else {
+        } else if (!user?.firstName) {
+          // Nome vazio → foca no nome
           nameRef.current?.focus();
         }
       }, 100);
@@ -51,6 +58,10 @@ export function JoinQueueSheet({
 
   const handleSubmit = () => {
     if (!name.trim() || !phone.trim() || isPending) return;
+    
+    // Salva o telefone localmente para as próximas vezes
+    localStorage.setItem('@barber:saved_phone', phone.trim());
+    
     onJoin(name.trim(), phone.trim(), user?.id);
   };
 
