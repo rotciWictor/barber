@@ -66,6 +66,7 @@ export interface Database {
           customer_name: string;
           whatsapp_phone: string;
           whatsapp_uid: string | null;
+          clerk_user_id: string | null;
           status: string;
           joined_at: string;
         };
@@ -75,12 +76,14 @@ export interface Database {
           customer_name: string;
           whatsapp_phone: string;
           whatsapp_uid?: string | null;
+          clerk_user_id?: string | null;
           status?: string;
         };
         Update: {
           customer_name?: string;
           whatsapp_phone?: string;
           whatsapp_uid?: string | null;
+          clerk_user_id?: string | null;
           status?: string;
         };
         Relationships: [];

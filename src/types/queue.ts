@@ -10,6 +10,8 @@ export interface QueueEntry {
   customer_name: string;
   /** Contato WhatsApp do cliente */
   whatsapp: WhatsAppContact;
+  /** ID do usuário Clerk (para anti-duplicata) */
+  clerk_user_id?: string;
   status: QueueStatus;
   joined_at: string;
 }
