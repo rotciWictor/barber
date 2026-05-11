@@ -1,5 +1,5 @@
 import { Users, Clock, Lock } from 'lucide-react';
-import { Show, SignInButton } from '@clerk/react';
+import { useUser, useClerk } from '@clerk/react';
 import { getEstimatedWait } from '../utils/queueUtils';
 
 interface CustomerQueueViewProps {
@@ -23,8 +23,20 @@ export function CustomerQueueView({
   onOpenPinSheet,
   onOpenJoinSheet,
 }: CustomerQueueViewProps) {
+  const { isSignedIn, isLoaded } = useUser();
+  const clerk = useClerk();
+  
   const waitingCount = hasInProgress ? totalInQueue - 1 : totalInQueue;
   const estimatedWait = getEstimatedWait(waitingCount, avgTime);
+
+  const handleJoinClick = () => {
+    if (!isLoaded) return;
+    if (isSignedIn) {
+      onOpenJoinSheet();
+    } else {
+      clerk.openSignIn();
+    }
+  };
 
   return (
     <div className="space-y-4 animate-fade-in">
@@ -77,31 +89,15 @@ export function CustomerQueueView({
 
           {/* Botão para entrar na fila */}
           {isOpen ? (
-            <>
-              {/* Se logado: abre direto o sheet. Se não: pede login primeiro */}
-              <Show when="signed-in">
-                <button
-                  type="button"
-                  onClick={onOpenJoinSheet}
-                  className="w-full h-14 rounded-2xl bg-brand-gold text-surface-900 font-semibold text-base flex items-center justify-center gap-2 shadow-lg shadow-brand-gold/20 active:scale-[0.97] transition-all duration-150"
-                >
-                  <Users className="w-5 h-5" />
-                  Entrar na Fila
-                </button>
-              </Show>
-
-              <Show when="signed-out">
-                <SignInButton mode="modal">
-                  <button
-                    type="button"
-                    className="w-full h-14 rounded-2xl bg-brand-gold text-surface-900 font-semibold text-base flex items-center justify-center gap-2 shadow-lg shadow-brand-gold/20 active:scale-[0.97] transition-all duration-150"
-                  >
-                    <Users className="w-5 h-5" />
-                    Entrar na Fila
-                  </button>
-                </SignInButton>
-              </Show>
-            </>
+            <button
+              type="button"
+              onClick={handleJoinClick}
+              disabled={!isLoaded}
+              className="w-full h-14 rounded-2xl bg-brand-gold text-surface-900 font-semibold text-base flex items-center justify-center gap-2 shadow-lg shadow-brand-gold/20 active:scale-[0.97] transition-all duration-150 disabled:opacity-50"
+            >
+              {isLoaded ? <Users className="w-5 h-5" /> : <div className="w-5 h-5 border-2 border-surface-900 border-t-transparent rounded-full animate-spin" />}
+              Entrar na Fila
+            </button>
           ) : (
             <div className="w-full h-14 rounded-2xl bg-surface-800 border border-surface-700/50 text-surface-400 font-medium text-sm flex items-center justify-center gap-2">
               Fila fechada no momento
