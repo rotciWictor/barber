@@ -12,20 +12,37 @@ export function useQueueMutations(shopId: string) {
     queryClient.invalidateQueries({ queryKey: ['queue', shopId] });
 
   const joinMutation = useMutation({
-    mutationFn: ({ name, phone }: { name: string; phone: string }) =>
-      QueueService.joinQueue({
+    mutationFn: async ({
+      name,
+      phone,
+      clerkUserId,
+    }: {
+      name: string;
+      phone: string;
+      clerkUserId?: string;
+    }) => {
+      // Anti-duplicata: verifica se o usuário já está na fila
+      if (clerkUserId) {
+        const alreadyIn = await QueueService.isAlreadyInQueue(shopId, clerkUserId);
+        if (alreadyIn) {
+          throw new Error('ALREADY_IN_QUEUE');
+        }
+      }
+
+      return QueueService.joinQueue({
         barbershop_id: shopId,
         customer_name: name,
         whatsapp: { phone: phone.replace(/\D/g, '') },
+        clerk_user_id: clerkUserId,
         status: 'waiting',
-      }),
+      });
+    },
     onSuccess: invalidate,
-    onError: () => alert('Erro ao entrar na fila. Tente novamente.'),
   });
 
   const callNextMutation = useMutation({
     mutationFn: () => QueueService.callNext(shopId),
-    onSuccess: invalidate,
+    onSuccess: () => invalidate(),
     onError: () => alert('Erro ao chamar próximo.'),
   });
 

@@ -10,6 +10,7 @@ function mapRowToQueueEntry(row: {
   customer_name: string;
   whatsapp_phone: string;
   whatsapp_uid: string | null;
+  clerk_user_id: string | null;
   status: string;
   joined_at: string;
 }): QueueEntry {
@@ -21,6 +22,7 @@ function mapRowToQueueEntry(row: {
       phone: row.whatsapp_phone,
       uid: row.whatsapp_uid ?? undefined,
     },
+    clerk_user_id: row.clerk_user_id ?? undefined,
     status: row.status as QueueEntry['status'],
     joined_at: row.joined_at,
   };
@@ -33,6 +35,7 @@ function mapInsertToRow(entry: QueueEntryInsert) {
     customer_name: entry.customer_name,
     whatsapp_phone: entry.whatsapp.phone,
     whatsapp_uid: entry.whatsapp.uid ?? null,
+    clerk_user_id: entry.clerk_user_id ?? null,
     status: entry.status,
   };
 }
@@ -56,6 +59,23 @@ export const QueueService = {
 
     if (error) throw new Error(`Erro ao entrar na fila: ${error.message}`);
     return mapRowToQueueEntry(data);
+  },
+
+  /**
+   * Verifica se um usuário Clerk já tem uma entrada ativa na fila.
+   * Usado para impedir entradas duplicadas.
+   */
+  async isAlreadyInQueue(barbershopId: string, clerkUserId: string): Promise<boolean> {
+    const { data, error } = await supabase
+      .from('queue')
+      .select('id')
+      .eq('barbershop_id', barbershopId)
+      .eq('clerk_user_id', clerkUserId)
+      .in('status', ['waiting', 'in_progress'])
+      .maybeSingle();
+
+    if (error) throw new Error(`Erro ao verificar fila: ${error.message}`);
+    return data !== null;
   },
 
   /**

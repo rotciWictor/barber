@@ -13,6 +13,8 @@ import { JoinQueueSheet } from './components/JoinQueueSheet';
 import { CustomerQueueView } from './components/CustomerQueueView';
 import { PinSheet } from './components/PinSheet';
 import { ConfirmDialog } from './components/ConfirmDialog';
+import { NotifyDialog } from './components/NotifyDialog';
+import type { QueueEntry } from '../../types/queue';
 
 // ─── Constants ────────────────────────────────────────────────
 const SHOP_ID = '00000000-0000-0000-0000-000000000001';
@@ -27,10 +29,15 @@ export default function QueueModule() {
 
   const [isJoinOpen, setIsJoinOpen] = useState(false);
   const [isPinOpen, setIsPinOpen] = useState(false);
+  const [joinError, setJoinError] = useState<string | null>(null);
   const [confirmState, setConfirmState] = useState<{
     action: 'finish' | 'remove';
     entryId: string;
     name: string;
+  } | null>(null);
+  const [notifyState, setNotifyState] = useState<{
+    called: QueueEntry | null;
+    next: QueueEntry | null;
   } | null>(null);
 
   // ─── Data ─────────────────────────────────────────────────
@@ -49,10 +56,29 @@ export default function QueueModule() {
   const { joinMutation, callNextMutation, finishMutation, removeMutation } =
     useQueueMutations(SHOP_ID);
 
+  const waitingEntries = queue.filter((e) => e.status === 'waiting');
+  const inProgressEntry = queue.find((e) => e.status === 'in_progress');
+  const isOpen = shop?.is_open ?? false;
+
   // ─── Handlers ─────────────────────────────────────────────
+  const handleCallNext = () => {
+    // Captura os clientes atuais da fila de espera ANTES da mutation mudar o banco
+    const currentCalled = waitingEntries[0] || null;
+    const currentNext = waitingEntries[1] || null;
+
+    callNextMutation.mutate(undefined, {
+      onSuccess: () => {
+        // Se havia alguém esperando, abre o modal de notificação
+        if (currentCalled || currentNext) {
+          setNotifyState({ called: currentCalled, next: currentNext });
+        }
+      },
+    });
+  };
+
   const handleAction = (action: 'call' | 'finish' | 'remove', entryId: string) => {
     if (action === 'call') {
-      callNextMutation.mutate();
+      handleCallNext();
       return;
     }
     const entry = queue.find((e) => e.id === entryId);
@@ -72,10 +98,20 @@ export default function QueueModule() {
     return isValid;
   };
 
-  const handleJoin = (name: string, phone: string) => {
-    joinMutation.mutate({ name, phone }, {
-      onSuccess: () => setIsJoinOpen(false),
-    });
+  const handleJoin = (name: string, phone: string, clerkUserId?: string) => {
+    setJoinError(null);
+    joinMutation.mutate(
+      { name, phone, clerkUserId },
+      {
+        onSuccess: () => {
+          setIsJoinOpen(false);
+          setJoinError(null);
+        },
+        onError: (err) => {
+          setJoinError(err instanceof Error ? err.message : 'UNKNOWN');
+        },
+      },
+    );
   };
 
   // ─── Loading ──────────────────────────────────────────────
@@ -88,10 +124,6 @@ export default function QueueModule() {
     );
   }
 
-  const waitingEntries = queue.filter((e) => e.status === 'waiting');
-  const inProgressEntry = queue.find((e) => e.status === 'in_progress');
-  const isOpen = shop?.is_open ?? false;
-
   // ─── Visão Cliente ────────────────────────────────────────
   if (viewMode === 'customer') {
     return (
@@ -102,13 +134,14 @@ export default function QueueModule() {
           hasInProgress={!!inProgressEntry}
           isOpen={isOpen}
           onOpenPinSheet={() => setIsPinOpen(true)}
-          onOpenJoinSheet={() => setIsJoinOpen(true)}
+          onOpenJoinSheet={() => { setJoinError(null); setIsJoinOpen(true); }}
         />
         <JoinQueueSheet
           isOpen={isJoinOpen}
-          onClose={() => setIsJoinOpen(false)}
+          onClose={() => { setIsJoinOpen(false); setJoinError(null); }}
           onJoin={handleJoin}
           isPending={joinMutation.isPending}
+          error={joinError}
         />
         <PinSheet
           isOpen={isPinOpen}
@@ -127,7 +160,7 @@ export default function QueueModule() {
       {waitingEntries.length > 0 && (
         <button
           type="button"
-          onClick={() => callNextMutation.mutate()}
+          onClick={handleCallNext}
           disabled={callNextMutation.isPending}
           className="w-full h-14 rounded-2xl bg-brand-gold text-surface-900 font-semibold text-base flex items-center justify-center gap-2 shadow-lg shadow-brand-gold/20 active:scale-[0.97] transition-all duration-150 disabled:opacity-40"
         >
@@ -154,7 +187,7 @@ export default function QueueModule() {
 
           <button
             type="button"
-            onClick={() => setIsJoinOpen(true)}
+            onClick={() => { setJoinError(null); setIsJoinOpen(true); }}
             className="w-full h-12 rounded-xl bg-surface-800 border border-surface-700/30 border-dashed text-surface-400 font-medium text-sm flex items-center justify-center gap-2 active:scale-[0.97] transition-all duration-150"
           >
             <UserPlus className="w-4 h-4" />
@@ -186,9 +219,10 @@ export default function QueueModule() {
 
       <JoinQueueSheet
         isOpen={isJoinOpen}
-        onClose={() => setIsJoinOpen(false)}
+        onClose={() => { setIsJoinOpen(false); setJoinError(null); }}
         onJoin={handleJoin}
         isPending={joinMutation.isPending}
+        error={joinError}
       />
 
       <ConfirmDialog
@@ -204,6 +238,13 @@ export default function QueueModule() {
         onConfirm={handleConfirm}
         onCancel={() => setConfirmState(null)}
         isPending={finishMutation.isPending || removeMutation.isPending}
+      />
+
+      <NotifyDialog
+        isOpen={!!notifyState}
+        onClose={() => setNotifyState(null)}
+        calledEntry={notifyState?.called ?? null}
+        nextEntry={notifyState?.next ?? null}
       />
     </div>
   );

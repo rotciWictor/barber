@@ -1,6 +1,6 @@
 import { Scissors, ArrowRight, MessageCircle, PhoneForwarded, CheckCircle, X } from 'lucide-react';
 import type { QueueEntry } from '../../../types/queue';
-import { getWhatsAppLink, formatJoinedAt } from '../utils/queueUtils';
+import { getWhatsAppNotifyLink, formatJoinedAt } from '../utils/queueUtils';
 
 type QueueAction = 'call' | 'finish' | 'remove';
 
@@ -18,6 +18,14 @@ interface QueueItemProps {
  */
 export function QueueItem({ entry, position, onAction }: QueueItemProps) {
   const isInProgress = entry.status === 'in_progress';
+
+  // Mensagem contextual para WhatsApp
+  const whatsAppType = isInProgress ? 'called' : position === 1 ? 'next' : 'called';
+  const whatsAppLink = getWhatsAppNotifyLink(
+    entry.whatsapp.phone,
+    entry.customer_name,
+    whatsAppType,
+  );
 
   return (
     <div
@@ -104,14 +112,15 @@ export function QueueItem({ entry, position, onAction }: QueueItemProps) {
         </div>
       )}
 
-      {/* WhatsApp (modo barbeiro — aparece quando tem onAction) */}
+      {/* WhatsApp — notificação contextual (modo barbeiro) */}
       {onAction && (
         <a
-          href={getWhatsAppLink(entry.whatsapp.phone)}
+          href={whatsAppLink}
           target="_blank"
           rel="noopener noreferrer"
           className="w-9 h-9 rounded-lg bg-green-500/10 border border-green-500/20 flex items-center justify-center shrink-0 active:scale-90 transition-transform"
-          aria-label={`Mensagem para ${entry.customer_name}`}
+          aria-label={`Notificar ${entry.customer_name} via WhatsApp`}
+          title={isInProgress ? 'Avisar: sua vez chegou!' : position === 1 ? 'Avisar: você é o próximo!' : 'Enviar mensagem'}
         >
           <MessageCircle className="w-4 h-4 text-green-400" />
         </a>
