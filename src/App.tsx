@@ -1,5 +1,6 @@
 import { Suspense } from 'react';
 import { QueryClient, QueryClientProvider, useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { Show, UserButton } from '@clerk/react';
 import { ModuleRegistryProvider } from './core/ModuleRegistry';
 import { Scissors, Users } from 'lucide-react';
 import { BarbershopService } from './services/barbershopService';
@@ -35,7 +36,7 @@ function LoadingFallback() {
   );
 }
 
-// ─── Header com semáforo funcional ────────────────────────────
+// ─── Header com semáforo funcional + perfil Clerk ─────────────
 function AppHeader() {
   const viewMode = useAppStore((s) => s.viewMode);
   const qc = useQueryClient();
@@ -68,26 +69,40 @@ function AppHeader() {
           </h1>
         </div>
 
-        <button
-          type="button"
-          onClick={handleToggle}
-          disabled={!isBarber || toggleMutation.isPending}
-          className={`
-            flex items-center gap-2 px-2.5 py-1.5 rounded-full transition-all
-            ${isBarber ? 'cursor-pointer active:scale-95' : 'cursor-default'}
-          `}
-          aria-label={isOpen ? 'Fechar fila' : 'Abrir fila'}
-        >
-          <div
+        <div className="flex items-center gap-3">
+          {/* Semáforo aberto/fechado */}
+          <button
+            type="button"
+            onClick={handleToggle}
+            disabled={!isBarber || toggleMutation.isPending}
             className={`
-              w-2.5 h-2.5 rounded-full transition-colors
-              ${isOpen ? 'bg-status-open animate-pulse-glow' : 'bg-status-closed'}
+              flex items-center gap-2 px-2.5 py-1.5 rounded-full transition-all
+              ${isBarber ? 'cursor-pointer active:scale-95' : 'cursor-default'}
             `}
-          />
-          <span className={`text-xs ${isOpen ? 'text-status-open' : 'text-surface-400'}`}>
-            {isOpen ? 'Aberto' : 'Fechado'}
-          </span>
-        </button>
+            aria-label={isOpen ? 'Fechar fila' : 'Abrir fila'}
+          >
+            <div
+              className={`
+                w-2.5 h-2.5 rounded-full transition-colors
+                ${isOpen ? 'bg-status-open animate-pulse-glow' : 'bg-status-closed'}
+              `}
+            />
+            <span className={`text-xs ${isOpen ? 'text-status-open' : 'text-surface-400'}`}>
+              {isOpen ? 'Aberto' : 'Fechado'}
+            </span>
+          </button>
+
+          {/* Avatar do usuário Clerk (quando logado) */}
+          <Show when="signed-in">
+            <UserButton
+              appearance={{
+                elements: {
+                  avatarBox: 'w-8 h-8',
+                },
+              }}
+            />
+          </Show>
+        </div>
       </div>
     </header>
   );
