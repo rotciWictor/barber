@@ -7,7 +7,7 @@ export function getEstimatedWait(position: number, avgTime: number): string {
 }
 
 export function getWhatsAppLink(phone: string): string {
-  return `https://wa.me/${phone}`;
+  return `https://wa.me/55${phone}`;
 }
 
 export function formatJoinedAt(iso: string): string {
@@ -36,7 +36,7 @@ export function getWhatsAppNotifyLink(
   type: NotificationType,
 ): string {
   const message = notificationTemplates[type](customerName);
-  return `https://wa.me/${phone}?text=${encodeURIComponent(message)}`;
+  return `https://wa.me/55${phone}?text=${encodeURIComponent(message)}`;
 }
 
 /**

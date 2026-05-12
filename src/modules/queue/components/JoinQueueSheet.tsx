@@ -83,7 +83,7 @@ export function JoinQueueSheet({
 
       {/* Sheet */}
       <div className="fixed bottom-0 left-0 right-0 z-50 animate-fade-in">
-        <div className="bg-surface-800 border-t border-surface-700/50 rounded-t-3xl p-6 pb-8">
+        <div className="bg-surface-800 border-t border-surface-700/50 rounded-t-3xl p-6 pb-24 max-h-[90vh] overflow-y-auto">
           {/* Handle */}
           <div className="w-10 h-1 bg-surface-600 rounded-full mx-auto mb-6" />
 
