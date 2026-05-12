@@ -98,7 +98,7 @@ export default function QueueModule() {
     return isValid;
   };
 
-  const handleJoin = (name: string, phone: string, clerkUserId?: string) => {
+  const handleJoin = (name: string, phone: string, clerkUserId: string) => {
     setJoinError(null);
     joinMutation.mutate(
       { name, phone, clerkUserId },
