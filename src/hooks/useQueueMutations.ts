@@ -1,5 +1,6 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { QueueService } from '../services/queueService';
+import { logger } from '../core/logger';
 
 /**
  * Hook que encapsula todas as mutations da fila.
@@ -8,8 +9,10 @@ import { QueueService } from '../services/queueService';
 export function useQueueMutations(shopId: string) {
   const queryClient = useQueryClient();
 
-  const invalidate = () =>
+  const invalidate = () => {
+    logger.debug('[ReactQuery] Invalidando cache da fila', { category: 'Queue' });
     queryClient.invalidateQueries({ queryKey: ['queue', shopId] });
+  };
 
   const joinMutation = useMutation({
     mutationFn: async ({
@@ -43,19 +46,19 @@ export function useQueueMutations(shopId: string) {
   const callNextMutation = useMutation({
     mutationFn: () => QueueService.callNext(shopId),
     onSuccess: () => invalidate(),
-    onError: () => alert('Erro ao chamar próximo.'),
+    onError: (error) => logger.error('Erro no mutation callNext', { category: 'Queue', error }),
   });
 
   const finishMutation = useMutation({
     mutationFn: (entryId: string) => QueueService.finishCurrent(entryId),
     onSuccess: invalidate,
-    onError: () => alert('Erro ao finalizar.'),
+    onError: (error) => logger.error('Erro no mutation finish', { category: 'Queue', error }),
   });
 
   const removeMutation = useMutation({
     mutationFn: (entryId: string) => QueueService.removeFromQueue(entryId),
     onSuccess: invalidate,
-    onError: () => alert('Erro ao remover.'),
+    onError: (error) => logger.error('Erro no mutation remove', { category: 'Queue', error }),
   });
 
   return { joinMutation, callNextMutation, finishMutation, removeMutation };
