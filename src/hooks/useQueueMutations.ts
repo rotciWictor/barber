@@ -22,14 +22,17 @@ export function useQueueMutations(shopId: string) {
     }: {
       name: string;
       phone: string;
-      clerkUserId?: string;
+      clerkUserId: string;
     }) => {
+      // O usuário PRECISA estar autenticado para entrar na fila
+      if (!clerkUserId) {
+        throw new Error('UNAUTHORIZED');
+      }
+
       // Anti-duplicata: verifica se o usuário já está na fila
-      if (clerkUserId) {
-        const alreadyIn = await QueueService.isAlreadyInQueue(shopId, clerkUserId);
-        if (alreadyIn) {
-          throw new Error('ALREADY_IN_QUEUE');
-        }
+      const alreadyIn = await QueueService.isAlreadyInQueue(shopId, clerkUserId);
+      if (alreadyIn) {
+        throw new Error('ALREADY_IN_QUEUE');
       }
 
       return QueueService.joinQueue({

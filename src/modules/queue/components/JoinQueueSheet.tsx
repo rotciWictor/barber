@@ -12,7 +12,7 @@ export function JoinQueueSheet({
 }: {
   isOpen: boolean;
   onClose: () => void;
-  onJoin: (name: string, phone: string, clerkUserId?: string) => void;
+  onJoin: (name: string, phone: string, clerkUserId: string) => void;
   isPending?: boolean;
   error?: string | null;
 }) {
@@ -57,12 +57,12 @@ export function JoinQueueSheet({
   if (!isOpen) return null;
 
   const handleSubmit = () => {
-    if (!name.trim() || !phone.trim() || isPending) return;
+    if (!name.trim() || !phone.trim() || isPending || !user?.id) return;
     
     // Salva o telefone localmente para as próximas vezes
     localStorage.setItem('@barber:saved_phone', phone.trim());
     
-    onJoin(name.trim(), phone.trim(), user?.id);
+    onJoin(name.trim(), phone.trim(), user.id);
   };
 
   const handlePhoneChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -151,7 +151,7 @@ export function JoinQueueSheet({
           <button
             type="button"
             onClick={handleSubmit}
-            disabled={!name.trim() || !phone.trim() || isPending || isAlreadyInQueue}
+            disabled={!name.trim() || !phone.trim() || isPending || isAlreadyInQueue || !user?.id}
             className="w-full h-14 mt-6 rounded-2xl bg-brand-gold text-surface-900 font-semibold text-base flex items-center justify-center gap-2 active:scale-[0.97] transition-all duration-150 disabled:opacity-40 disabled:active:scale-100"
           >
             {isPending ? (
