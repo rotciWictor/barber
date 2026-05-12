@@ -134,6 +134,10 @@ export const QueueService = {
   /**
    * Chama o próximo da fila.
    * Finaliza quem está em atendimento (se houver) e promove o próximo waiting.
+   * 
+   * TODO (Escalabilidade): Quando evoluir para multi-barbeiros, mover esta função 
+   * para uma Supabase RPC (PostgreSQL Function) para executar em uma única TRANSACTION,
+   * evitando race conditions se 2 barbeiros chamarem ao mesmo tempo.
    */
   async callNext(barbershopId: string): Promise<QueueEntry | null> {
     logger.info('[callNext] Iniciando transação para chamar o próximo', { category: 'Supabase' });

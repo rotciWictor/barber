@@ -119,27 +119,27 @@ npm run dev
 4. **[x] Visão dupla** — Cliente (posições anônimas) vs Barbeiro (nomes, ações, WhatsApp)
 5. **[x] PIN de acesso** — 4 dígitos OTP, verificado no Supabase, persistido local
 
-### Fase 2 — Pronto pra Teste Real 🎯
+### ~~Fase 2 — Pronto pra Teste Real~~ ✅
 
 > Objetivo: colocar na mão de um barbeiro real com segurança mínima.
 
-1. **[ ] Autenticação do cliente**
-   - Login via WhatsApp (OTP) ou Supabase Auth (magic link)
-   - Impede entrada duplicada na fila (1 pessoa = 1 entrada)
+1. **[x] Autenticação do cliente**
+   - Login via Clerk Auth (Google)
+   - Impede entrada duplicada na fila (1 pessoa = 1 entrada, backend enforced)
    - Barbeiro continua com PIN (sem mudança)
 
-2. **[ ] Notificações de fila**
-   - Quando chega ao 1º da fila: alerta no app + WhatsApp "Você é o próximo! Fique por perto"
-   - Quando barbeiro clica "Chamar": WhatsApp "Sua vez! Tem 5 minutos pra chegar"
-   - Timer de 5 min visível no app (contagem regressiva no card do cliente)
-   - Se não chegou: botão "Pular" → próximo da fila passa na frente
+2. **[x] Notificações de fila**
+   - Barbeiro clica em "Chamar": Abre modal perguntando se quer enviar WhatsApp pro atual ou próximo
    - Custo: $0 (deep link, não API)
 
-3. **[ ] Deploy Vercel**
-   - Commitar `vercel.json`
-   - Linkar repositório ao Vercel
-   - Configurar env vars no painel
-   - Testar em celular real
+3. **[x] Deploy Vercel**
+   - Arquivo `vercel.json` configurado (SPA routing)
+   - Deploy na branch `main` com CI/CD
+
+4. **[x] Testes Automatizados (Vitest)**
+   - Testes unitários para regras de negócio (WhatsApp, cálculos)
+   - Testes de UI e anti-duplicata mockada
+   - Cobertura de Logs Centralizados (Logger) para escalabilidade
 
 ### Fase 3 — PWA e Polish
 
@@ -161,6 +161,12 @@ npm run dev
 
 3. **[ ] Analytics (Capítulo 4)**
    - Dashboard com métricas de fila, tempo médio, fluxo por dia
+
+---
+
+## 🏗️ Technical Debt & Lembretes
+
+- **Escalabilidade (Multi-Barbeiro)**: Atualmente, a função `callNext` faz dois requests separados (um `SELECT` para achar o atual, um `UPDATE` para finalizar, e um `SELECT/UPDATE` para promover o próximo). Para um barbeiro solo, isso é seguro. Quando o sistema evoluir para multi-barbeiros simultâneos acessando a mesma fila, **movimentar a lógica do `callNext` para uma RPC (Remote Procedure Call) do Supabase**, garantindo que tudo ocorra dentro de uma única `TRANSACTION` atômica no PostgreSQL.
 
 ---
 
