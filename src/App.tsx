@@ -60,7 +60,7 @@ function AppHeader() {
   };
 
   return (
-    <header className="sticky top-0 z-50 bg-surface-900/80 backdrop-blur-md border-b border-surface-700/50">
+    <header className="sticky top-0 z-40 bg-surface-900/80 backdrop-blur-md border-b border-surface-700/50">
       <div className="flex items-center justify-between px-4 h-14">
         <div className="flex items-center gap-2">
           <Scissors className="w-5 h-5 text-brand-gold" />
@@ -120,7 +120,7 @@ function AppShell() {
       </main>
 
       {/* Bottom nav */}
-      <nav className="fixed bottom-0 left-0 right-0 z-50 bg-surface-900/90 backdrop-blur-md border-t border-surface-700/50">
+      <nav className="fixed bottom-0 left-0 right-0 z-40 bg-surface-900/90 backdrop-blur-md border-t border-surface-700/50">
         <div className="flex items-center justify-around h-16">
           <button
             type="button"
