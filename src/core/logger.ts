@@ -10,13 +10,13 @@ interface LogOptions {
 const isDev = import.meta.env.DEV;
 
 class LogManager {
-  private formatMessage(level: LogLevel, message: string, options?: LogOptions) {
+  private formatMessage(message: string, options?: LogOptions) {
     const category = options?.category ? `[${options.category}]` : '[App]';
     return `${category} ${message}`;
   }
 
   private print(level: LogLevel, message: string, options?: LogOptions) {
-    const formattedMessage = this.formatMessage(level, message, options);
+    const formattedMessage = this.formatMessage(message, options);
 
     // No futuro, aqui podemos interceptar e mandar para o Sentry/Datadog
     // if (!isDev) { sendToSentry(...) }
