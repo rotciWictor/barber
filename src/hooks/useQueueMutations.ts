@@ -46,19 +46,28 @@ export function useQueueMutations(shopId: string) {
   const callNextMutation = useMutation({
     mutationFn: () => QueueService.callNext(shopId),
     onSuccess: () => invalidate(),
-    onError: (error) => logger.error('Erro no mutation callNext', { category: 'Queue', error }),
+    onError: (error) => {
+      logger.error('Erro no mutation callNext', { category: 'Queue', error });
+      alert('Erro ao chamar o próximo da fila. Tente novamente.');
+    },
   });
 
   const finishMutation = useMutation({
     mutationFn: (entryId: string) => QueueService.finishCurrent(entryId),
     onSuccess: invalidate,
-    onError: (error) => logger.error('Erro no mutation finish', { category: 'Queue', error }),
+    onError: (error) => {
+      logger.error('Erro no mutation finish', { category: 'Queue', error });
+      alert('Erro ao finalizar o atendimento.');
+    },
   });
 
   const removeMutation = useMutation({
     mutationFn: (entryId: string) => QueueService.removeFromQueue(entryId),
     onSuccess: invalidate,
-    onError: (error) => logger.error('Erro no mutation remove', { category: 'Queue', error }),
+    onError: (error) => {
+      logger.error('Erro no mutation remove', { category: 'Queue', error });
+      alert('Erro ao remover o cliente da fila.');
+    },
   });
 
   return { joinMutation, callNextMutation, finishMutation, removeMutation };
